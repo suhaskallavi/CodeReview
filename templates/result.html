@@ -1,0 +1,106 @@
+{% extends "layout.html" %}
+{% block content %}
+    <div class="container">
+		<button class="my-button align-left" onclick="redirectToHomePage()">Home</button>
+        {% if shows %}
+            <ul>
+            {% for show in shows %}
+                <div class="show-details">
+                    <h2>{{ show.name }}</h2>
+					<br>
+					<div class="platform-grid">
+                        <button class="my-button" onclick="addToMyList('{{ show.id }}', '{{ show.name }}', '{{ show.backdrop_path}}', '{{show.poster_path}}', '{{ show.overview }}', '{{show.first_air_date}}')">Add to My List</button>
+					    <button class="my-button" onclick="redirectToListPage()">My List</button>
+					</div>
+					<br><br><br>
+                    {% if show.backdrop_path %}
+                        <img src="https://image.tmdb.org/t/p/w500/{{ show.backdrop_path }}" alt="Show Backdrop" class="show-backdrop" style="border: 5px solid red;">
+                    {% endif %}
+                    <p class="overview">{{ show.overview }}</p>
+                    <p class="overview">First Air Date: {{ show.first_air_date }}</p>
+                    <br>
+
+                    {% if not platforms_logos %}    
+                        <p>Sorry, no online platforms found in your region for this show.</p>
+                    {% else %}
+                        <h3>Now available on:</h3>
+                        <div class="platform-grid">
+                        {% for platform, logo in platforms_logos %}
+                            <div class="platform-item">
+                                {% if platform == 'hbo' %}
+                                    {{ platform|upper }}
+                                {% else %}
+                                    {{ platform|capitalize }}
+                                {% endif %}
+                                <img src="{{ logo }}" alt="Platform Logo" class="platform-logo" style="border: 2px solid red;">
+                            </div>
+                        {% endfor %}
+                        </div>
+                    <br>
+                    <br>
+                    <br>
+                    {% endif %}
+                    
+
+                    <h3><br>Preview</h3>
+                    <br>
+
+                    {% if show.video %}
+                        {% for video in show.video %}
+                            <iframe width="700" height="400" src="https://www.youtube.com/embed/{{ video.video_id }}" frameborder="0" style="border: 5px solid red;" allowfullscreen></iframe>
+                            <br>
+                            {{ video.title }}
+                            <br><br><br>
+                        {% endfor %}
+                    {% else %}
+                        <p>Sorry, no preview video available for this show.</p>
+                    {% endif %}
+
+                </div>
+				<br>
+            {% endfor %}
+            </ul>
+        {% else %}
+            <p>Sorry, no show found with this name. Please try again!</p>
+        {% endif %}
+    </div>
+
+	<script>
+		function addToMyList(showId, showName, backdropPath, posterPath, overview, firstAirDate) {
+			  fetch('/addlist', {
+					  method: 'POST',
+					  headers: {
+							  'Content-Type': 'application/json',
+					  },
+					  body: JSON.stringify({
+							  show_id: showId,
+							  show_name: showName,
+							  backdrop_path: backdropPath,
+							  poster_path: posterPath,
+							  overview: overview,
+							  first_air_date: firstAirDate
+					  }),
+				  })
+				  .then(response => {
+					  if (response.ok) {
+							  alert(showName + ' has been added to your list');
+					  } else {
+							  alert('Sorry, could not add ' + showName + ' to your list. Please try again');
+					  }
+				  })
+				  .catch(error => {
+					  alert('Sorry, an error occurred while adding ' + showName + ' to your list. Please try again');
+					  console.error(error);
+				  });
+		}
+
+		function redirectToListPage() {
+            window.location.href = "/mylist";
+        }
+
+		function redirectToHomePage() {
+            window.location.href = "/";
+        }
+	  </script>
+	
+{% endblock %}

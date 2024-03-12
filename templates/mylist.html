@@ -1,0 +1,47 @@
+{% extends "layout.html" %}
+{% block content %}
+    <div class="container">
+        <button class="my-button align-left" onclick="redirectToPage()">Home</button>
+        <h1 style="padding-left: 30px;">My List</h1>
+        <br>
+        {% if shows %}
+            <ul>
+            {% for show in shows %}
+                <div class="show-details">
+                    <hr class="show-divider"><br>
+                    <h2>{{ show.show_name }}</h2>
+
+                    {% if show.backdrop_path %}
+                        <img src="https://image.tmdb.org/t/p/w500/{{ show.backdrop_path }}" alt="Show Backdrop" class="show-backdrop" style="border: 5px solid red;">
+                        <br><br>
+                    {% endif %}
+                    {% if show.poster_path %}
+                        <img src="https://image.tmdb.org/t/p/w500/{{ show.poster_path }}" alt="Show Poster" class="show-backdrop" style="border: 5px solid red;">
+                    {% endif %}
+                    <p class="overview">{{ show.overview }}</p>
+                    <p class="overview">First Air Date: {{ show.first_air_date }}</p>
+                    <br>
+                    
+	                <form action="{{ url_for('mylist') }}" method="POST" style="display: inline;">
+                    <input type="hidden" name="show_id" value="{{ show.show_id }}">
+                    <button type="submit" class="my-button">Remove from My List</button>
+                    </form>
+
+                </div>
+				<br>
+            {% endfor %}
+            </ul>
+        {% else %}
+            <p style="padding-left: 45px;">No shows here yet, time to explore!</p>
+        {% endif %}
+    </div>
+
+    <script>
+        function redirectToPage() {
+          window.location.href = "{{ url_for('index') }}";
+        }
+    </script>
+
+	
+	
+{% endblock %}

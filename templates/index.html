@@ -1,0 +1,93 @@
+{% extends "layout.html" %}
+{% block content %}
+    <div class="container">
+        <button class="my-button align-right" onclick="redirectToPage()">My List</button>
+        <br>
+        <h1 class="centered-text" style="padding-left: 45px;">Show Box</h1>
+
+        <form action="{{ url_for('index') }}" method="GET">
+            <input type="text" name="query" placeholder="Search for TV Shows" class="fancy-input" style="padding-left: 125px; padding-right: 55px; margin-left: 45px;">
+            <br><br>
+            <button class="my-search-button" type="submit" style="margin-left: 60px;">Search</button>
+        </form>
+        
+        <br><br>
+        
+        {% if shows %}
+            <ul>
+            <hr class="show-divider">
+            <h1>Upcoming Shows</h1>
+            {% for show in shows %}
+                <div class="show-details">
+                    <hr class="show-divider"><br>
+                    <h2>{{ show.name }}</h2>
+                    <h3><br>Preview</h3>
+                    <br>
+
+                    {% if show.video %}
+                        {% for video in show.video %}
+                            <iframe width="700" height="400" src="https://www.youtube.com/embed/{{ video.video_id }}" frameborder="0" style="border: 5px solid red;" allowfullscreen></iframe>
+                            <br>
+                            {{ video.title }}
+                            <br><br><br>
+                        {% endfor %}
+                    {% else %}
+                        <p>Sorry, no preview video available for this show.</p>
+                    {% endif %}
+                    <p class="overview">{{ show.overview }}</p>
+                    <p class="overview">First Air Date: {{ show.first_air_date }}</p>
+                    <br>
+                    <button class="my-button align-right" onclick="addToMyList('{{ show.id }}', '{{ show.name }}', '{{ show.backdrop_path}}', '{{show.poster_path}}', '{{ show.overview }}', '{{show.first_air_date}}')">Add to My List</button>
+                    <br>
+                </div>
+                <br>
+            {% endfor %}
+            </ul>
+        {% endif %}
+
+        {%if alertMsg %}
+        <script>
+            function noResults() {
+                alert('Sorry, no show found with this name. Please try again!');
+            }
+            noResults();
+        </script>
+        {% endif %}
+    </div>
+
+    <script>
+		function addToMyList(showId, showName, backdropPath, posterPath, overview, firstAirDate) {
+			  fetch('/addlist', {
+					  method: 'POST',
+					  headers: {
+							  'Content-Type': 'application/json',
+					  },
+					  body: JSON.stringify({
+							  show_id: showId,
+							  show_name: showName,
+							  backdrop_path: backdropPath,
+							  poster_path: posterPath,
+							  overview: overview,
+							  first_air_date: firstAirDate
+					  }),
+				  })
+				  .then(response => {
+					  if (response.ok) {
+							  alert(showName + ' has been added to your list');
+					  } else {
+							  alert('Sorry, could not add ' + showName + ' to your list. Please try again');
+					  }
+				  })
+				  .catch(error => {
+					  alert('Sorry, an error occurred while adding ' + showName + ' to your list. Please try again');
+					  console.error(error);
+				  });
+		}
+
+        function redirectToPage() {
+            window.location.href = "/mylist";
+        }
+
+    </script>
+
+{% endblock %}
