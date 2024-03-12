@@ -8,12 +8,12 @@ import re
 
 class Index(MethodView):
     """
-    Class representing the index page of the Flask app.
+    Class representing the index page of the Flask app
     """
     
     def get(self):
         """
-        HTTP GET method for displaying the index page.
+        HTTP GET method for displaying the index page
         """
         load_dotenv()
         search_query = request.args.get('query')
