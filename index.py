@@ -96,6 +96,24 @@ class Index(MethodView):
         
         return logos
 
+    def default_index_page(self, tmdb_api_key):
+        """
+        Display default index page with upcoming shows.
+        """
+
+        url = f"https://api.themoviedb.org/3/tv/upcoming?api_key={tmdb_api_key}&language=en-US&page=1"
+        
+        try:
+            response = requests.get(url)
+            if response.status_code == 200:
+                data = response.json()
+                shows = data['results']
+                return render_template('index.html', shows=shows)
+            else:
+                return "Failed to fetch data"
+        except Exception as e:
+            return str(e)
+
     def get_filtered_shows(self, tmdb_api_key):
         """
         Filter upcoming shows based on certain criteria.
@@ -135,3 +153,4 @@ class Index(MethodView):
                 shows.append(show)
         
         return shows
+    
