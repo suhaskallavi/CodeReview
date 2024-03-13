@@ -63,39 +63,41 @@ class Index(MethodView):
             return []
 
     def get_filtered_shows(self, tmdb_api_key):
-
-            shows = []
-            current_date = datetime.date.today()
-            tomorrow = current_date + datetime.timedelta(days=1)
-            months_later = current_date + datetime.timedelta(days=6 * 30)
-            start_date = tomorrow.strftime('%Y-%m-%d')
-            end_date = months_later.strftime('%Y-%m-%d')
+        """
+        Filter upcoming shows based on certain criteria.
+        """
+        shows = []
+        current_date = datetime.date.today()
+        tomorrow = current_date + datetime.timedelta(days=1)
+        months_later = current_date + datetime.timedelta(days=6 * 30)
+        start_date = tomorrow.strftime('%Y-%m-%d')
+        end_date = months_later.strftime('%Y-%m-%d')
+        
+        tmdb_url = f'https://api.themoviedb.org/3/discover/tv?api_key={tmdb_api_key}&include_video=true&sort_by=popularity.desc&first_air_date.gte={start_date}&first_air_date.lte={end_date}'
+        tmdb_response = requests.get(tmdb_url)
+        tmdb_data = tmdb_response.json().get('results', [])
+        
+        for show in tmdb_data:
+            if 'first_air_date' not in show or show['first_air_date'] < start_date or show['first_air_date'] > end_date or not re.match(r'^[\x00-\x7F]+$', show['name']):
+                continue
             
-            tmdb_url = f'https://api.themoviedb.org/3/discover/tv?api_key={tmdb_api_key}&include_video=true&sort_by=popularity.desc&first_air_date.gte={start_date}&first_air_date.lte={end_date}'
-            tmdb_response = requests.get(tmdb_url)
-            tmdb_data = tmdb_response.json().get('results', [])
+            tv_id = show['id']
+            video_url = f'https://api.themoviedb.org/3/tv/{tv_id}/videos?api_key={tmdb_api_key}'
+            video_response = requests.get(video_url)
+            video_data = video_response.json().get('results', [])
             
-            for show in tmdb_data:
-                if 'first_air_date' not in show or show['first_air_date'] < start_date or show['first_air_date'] > end_date or not re.match(r'^[\x00-\x7F]+$', show['name']):
-                    continue
-                
-                tv_id = show['id']
-                video_url = f'https://api.themoviedb.org/3/tv/{tv_id}/videos?api_key={tmdb_api_key}'
-                video_response = requests.get(video_url)
-                video_data = video_response.json().get('results', [])
-                
-                video_urls = [f"https://www.youtube.com/watch?v={video['key']}" for video in video_data if video['site'] == 'YouTube']
-                video_titles = [video['name'] for video in video_data if video['site'] == 'YouTube']
-                filtered_videos = [{'title': title, 'url': url} for title, url in zip(video_titles, video_urls) if 'trailer' not in title.lower()]
-                
-                most_watched_video = []
-                if filtered_videos:
-                    most_watched_video.append(max(filtered_videos, key=lambda video: video['title']))
-                    show['video'] = most_watched_video
-                    for video in show['video']:
-                        video_id = re.search(r'(?<=v=)[^&#]+', video['url'])
-                        if video_id:
-                            video['video_id'] = video_id.group(0)
-                    shows.append(show)
+            video_urls = [f"https://www.youtube.com/watch?v={video['key']}" for video in video_data if video['site'] == 'YouTube']
+            video_titles = [video['name'] for video in video_data if video['site'] == 'YouTube']
+            filtered_videos = [{'title': title, 'url': url} for title, url in zip(video_titles, video_urls) if 'trailer' not in title.lower()]
             
-            return shows
+            most_watched_video = []
+            if filtered_videos:
+                most_watched_video.append(max(filtered_videos, key=lambda video: video['title']))
+                show['video'] = most_watched_video
+                for video in show['video']:
+                    video_id = re.search(r'(?<=v=)[^&#]+', video['url'])
+                    if video_id:
+                        video['video_id'] = video_id.group(0)
+                shows.append(show)
+        
+        return shows
