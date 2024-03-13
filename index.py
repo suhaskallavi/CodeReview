@@ -96,23 +96,31 @@ class Index(MethodView):
         
         return logos
 
-    def default_index_page(self, tmdb_api_key):
-        """
-        Display default index page with upcoming shows.
-        """
+def default_index_page(self, tmdb_api_key):
+    """
+    Display default index page with upcoming shows.
+    """
 
-        url = f"https://api.themoviedb.org/3/tv/upcoming?api_key={tmdb_api_key}&language=en-US&page=1"
-        
-        try:
-            response = requests.get(url)
-            if response.status_code == 200:
-                data = response.json()
-                shows = data['results']
-                return render_template('index.html', shows=shows)
-            else:
-                return "Failed to fetch data"
-        except Exception as e:
-            return str(e)
+    # Constructing the URL for the TMDB API request
+    url = f"https://api.themoviedb.org/3/tv/upcoming?api_key={tmdb_api_key}&language=en-US&page=1"
+    
+    try:
+        # Sending a GET request to TMDB API
+        response = requests.get(url)
+        # Checking if the response status code is OK (200)
+        if response.status_code == 200:
+            # Parsing JSON response
+            data = response.json()
+            # Extracting 'results' containing shows
+            shows = data['results']
+            # Rendering index.html template with shows data
+            return render_template('index.html', shows=shows)
+        else:
+            # Returning an error message if the request fails
+            return "Failed to fetch data"
+    except Exception as e:
+        # Catching all exceptions, which is not recommended; should handle specific exceptions
+        return str(e)
 
     def get_filtered_shows(self, tmdb_api_key):
         """
