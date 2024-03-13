@@ -63,7 +63,9 @@ class Index(MethodView):
             return []
 
     def get_platforms_logos(self, search_query):
-
+        """
+        Retrieve streaming platforms and their logos.
+        """
         rapid_url = "https://streaming-availability.p.rapidapi.com/v2/search/title"
         querystring = {"title":search_query,"country":"us","show_type":"series","output_language":"en"}
         rapid_headers = {
