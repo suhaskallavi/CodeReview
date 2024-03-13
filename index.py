@@ -41,3 +41,23 @@ class Index(MethodView):
         else:
             return self.default_index_page()
 
+
+    def filter_tmdb_data(self, tmdb_data):
+        """
+        Filter TMDB data to get relevant show information.
+        """
+        if 'results' in tmdb_data:
+            filtered_shows = [
+                {
+                    'id': show['id'],
+                    'name': show['name'],
+                    'backdrop_path': show['backdrop_path'],
+                    'poster_path': show['poster_path'],
+                    'overview': show['overview'],
+                    'first_air_date': show['first_air_date']
+                }
+                for show in tmdb_data['results']
+            ]
+            return filtered_shows
+        else:
+            return []
