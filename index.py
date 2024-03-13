@@ -61,3 +61,35 @@ class Index(MethodView):
             return filtered_shows
         else:
             return []
+
+    def get_filtered_shows(tmdb_api_key):
+        shows = []
+        current_date = datetime.datetime.now()
+        tomorrow = current_date + datetime.timedelta(days=1)
+        months_later = current_date + datetime.timedelta(180)
+        for single_date in (tomorrow + datetime.timedelta(n) for n in range(180)):
+            tmdb_url = f"https://api.themoviedb.org/3/discover/tv?api_key={tmdb_api_key}&include_video=true&sort_by=popularity.desc&first_air_date.gte={single_date.strftime('%Y-%m-%d')}"
+            tmdb_response = requests.get(tmdb_url)
+            tmdb_data = tmdb_response.json()
+            if 'results' in tmdb_data:
+                for show in tmdb_data['results']:
+                    if show.get('first_air_date', '') < tomorrow.strftime('%Y-%m-%d') or show.get('first_air_date', '') > months_later.strftime('%Y-%m-%d'):
+                        continue
+                    if not re.match(r'^[\x00-\x7F]+$', show['name']):
+                        continue
+                    video_url = f"https://api.themoviedb.org/3/tv/{show['id']}/videos?api_key={tmdb_api_key}"
+                    video_response = requests.get(video_url)
+                    video_data = video_response.json().get('results', [])
+
+                    video_urls = []
+                    video_titles = []
+                    for video in video_data:
+                        if 'site' in video and video['site'] == 'YouTube':
+                            video_urls.append(f"https://www.youtube.com/watch?v={video['key']}")
+                            video_titles.append(video['name'])
+                    most_watched_video = sorted(video_titles)[-1] if video_titles else None
+                    if most_watched_video:
+                        show['video'] = {'title': most_watched_video, 'url': video_urls[video_titles.index(most_watched_video)]}
+                        shows.append(show)
+        
+        return shows
