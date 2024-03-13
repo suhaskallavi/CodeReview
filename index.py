@@ -62,6 +62,45 @@ class Index(MethodView):
         else:
             return []
 
+    def get_platforms_logos(search_query):
+        base_url = "https://streaming-availability.p.rapidapi.com/v2/search/title"
+        parameters = {
+            "title": search_query,
+            "country": "us",
+            "show_type": "series",
+            "output_language": "en"
+        }
+        headers = {
+            "X-RapidAPI-Key": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6",
+            "X-RapidAPI-Host": "streaming-availability.p.rapidapi.com"
+        }
+        response = requests.get(base_url, headers=headers, params=parameters)
+        data = response.json()
+
+        if 'results' in data:
+            results = data['results']
+        else:
+            results = []
+
+        platform_names = []
+        for result in results:
+            if 'us' in result.get('streamingInfo', {}):
+                for platform, details in result['streamingInfo']['us'].items():
+                    platform_names.append(platform)
+        
+        logos = []
+        for platform_name in platform_names:
+            brand_url = f"https://api.brandfetch.io/v2/search/{platform_name}"
+            brand_response = requests.get(brand_url)
+            if brand_response.status_code == 200:
+                brand_data = brand_response.json()
+                if brand_data:
+                    logo_url = brand_data.get('icon', None)
+                    if logo_url:
+                        logos.append((platform_name, logo_url))
+        
+        return logos
+
     def get_filtered_shows(self, tmdb_api_key):
         """
         Filter upcoming shows based on certain criteria.
