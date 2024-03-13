@@ -25,6 +25,7 @@ class Index(MethodView):
             return self.default_index_page(tmdb_api_key)
     
 
+
     def search_results(self, search_query, tmdb_api_key):
         tmdb_url = f'https://api.themoviedb.org/3/search/tv?api_key={tmdb_api_key}&query={search_query}'
         tmdb_response = requests.get(tmdb_url)
