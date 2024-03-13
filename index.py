@@ -62,42 +62,35 @@ class Index(MethodView):
         else:
             return []
 
-    def get_platforms_logos(search_query):
-        base_url = "https://streaming-availability.p.rapidapi.com/v2/search/title"
-        parameters = {
-            "title": search_query,
-            "country": "us",
-            "show_type": "series",
-            "output_language": "en"
-        }
-        headers = {
-            "X-RapidAPI-Key": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6",
+    def get_platforms_logos(self, search_query):
+
+        rapid_url = "https://streaming-availability.p.rapidapi.com/v2/search/title"
+        querystring = {"title":search_query,"country":"us","show_type":"series","output_language":"en"}
+        rapid_headers = {
+            "X-RapidAPI-Key": os.environ.get('RAPID_API_KEY'),
             "X-RapidAPI-Host": "streaming-availability.p.rapidapi.com"
         }
-        response = requests.get(base_url, headers=headers, params=parameters)
-        data = response.json()
-
-        if 'results' in data:
-            results = data['results']
-        else:
-            results = []
-
-        platform_names = []
-        for result in results:
-            if 'us' in result.get('streamingInfo', {}):
-                for platform, details in result['streamingInfo']['us'].items():
-                    platform_names.append(platform)
+        rapid_response = requests.get(rapid_url, headers=rapid_headers, params=querystring)
+        rapid_response_data = rapid_response.json()
+        output = rapid_response_data.get('result', [])
+        
+        platforms = []
+        for item in output:
+            streaming_info = item.get('streamingInfo', {})
+            if 'us' in streaming_info:
+                platforms.extend(streaming_info['us'].keys())
+                break
         
         logos = []
-        for platform_name in platform_names:
-            brand_url = f"https://api.brandfetch.io/v2/search/{platform_name}"
-            brand_response = requests.get(brand_url)
-            if brand_response.status_code == 200:
-                brand_data = brand_response.json()
-                if brand_data:
-                    logo_url = brand_data.get('icon', None)
-                    if logo_url:
-                        logos.append((platform_name, logo_url))
+        brand_headers = {"accept": "application/json","Referer": "https://example.com/searchIntegrationPage"}
+        for platform in platforms:
+            brand_url = f"https://api.brandfetch.io/v2/search/{platform}"
+            brand_response = requests.get(brand_url, headers=brand_headers)
+            brand_response_data = brand_response.json()
+            if brand_response_data:
+                logo_url = brand_response_data[0].get('icon', '')
+                if logo_url:
+                    logos.append((platform, logo_url))
         
         return logos
 
