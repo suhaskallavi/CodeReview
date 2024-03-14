@@ -147,8 +147,5 @@ class Index(MethodView):
         """
         Display default index page with an alert message.
         """
-        try:
-            shows = self.get_filterd_shows(os.environ.get('TMDB_API_KEY'))
-            return render_template('index.html', shows=shows, alertMsg=alertMsg)
-        except Exception as e:
-            return "An error occurred while fetching shows: " + str(e)
+        shows = self.get_filtered_shows(os.environ.get('TMDB_API_KEY'))
+        return render_template('index.html', shows=shows, alertMsg=alertMsg)
