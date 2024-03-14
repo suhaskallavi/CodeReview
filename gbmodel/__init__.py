@@ -1,4 +1,4 @@
-model_backend = 'datastore'
+model_backend = 'sqlite3'
 
 if model_backend == 'sqlite3':
     from .model_sqlite3 import model
